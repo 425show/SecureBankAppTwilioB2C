@@ -1,0 +1,69 @@
+@page
+@model VerifyModel
+
+@{
+    ViewBag.Title = "Verify Phone Number";
+}
+
+<div class="container" style="margin: 0 auto; width:80%">
+    <form method="post" >
+        <div asp-validation-summary="All" class="alert alert-warning"></div>
+        <div class="form-group">
+            <label asp-for="Input.Code" style="color: lightgrey;"></label>
+            <input type="text" asp-for="Input.Code" class="form-control"/>
+            <span asp-validation-for="Input.Code" class="text-danger"></span>
+        </div>
+        <div style="margin-top:1.1em;">
+            <button type="submit" class="btn btn-primary">Verify</button>
+        </div>
+    </form>
+
+    <hr/>
+
+    <h4>Didn't you receive the code?</h4>
+    <div class="form-check">
+        <input class="form-check-input" name="channel" type="radio" value="sms" checked="checked"/>
+        <label class="form-check-label" for="channel" style="color: lightgrey;">SMS</label>
+    </div>
+        <div class="form-check">
+        <input class="form-check-input" name="channel" type="radio" value="call"/>
+        <label class="form-check-label" for="channel" style="color: lightgrey;">Call</label>
+    </div>
+    <div style="margin-top:1.1em;">
+        <button class="btn btn-warning" name="form-submit" type="submit" id="resend">Resend</button>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script type="text/javascript">
+    $(document).ready(function(){
+        $(document).on('click', 'button#resend', function(){
+            $.ajax({
+                url: '@Url.Content("~/api/Verify")',
+                method: 'POST',
+                data: {
+                  channel: $('input[name=channel]').val()
+                },
+                success: function(result) {
+                    if(result.isValid === true) {
+                        showMessages(['New code sent to the registered phone number']);
+                    } else {
+                        showMessages(result.errors);
+                    }
+                },
+                error: function() {
+                    showMessages('Request failed: check your internet connection');
+                }
+            })
+        });
+    });
+    function showMessages(messages) {
+        $('#messages').html(
+            '<ul>' + messages.map(function(message){ return '<li>'+message+'</li>' }).join('') + '</ul>'
+        );
+    }
+    </script>
+}
+
